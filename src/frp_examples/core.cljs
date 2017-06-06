@@ -1,16 +1,21 @@
 (ns frp-examples.core
-  (:require ))
+  (:require [aid.core :as aid]
+            [bidi.bidi :as bidi]
+            [com.rpl.specter :as s]
+            [frp.core :as frp]
+            [frp.location :as location]
+            [frp-examples.index :as index]
+            [reagent.core :as r]))
 
 (enable-console-print!)
 
-(println "This text is printed from src/frp-examples/core.cljs. Go ahead and edit it and see reloading in action.")
+(def app
+  (aid/=<< (comp (s/setval :index index/index index/route-function)
+                 :handler
+                 (partial bidi/match-route index/route))
+           location/pathname))
 
-;; define your app data so that it doesn't get over-written on reload
+(frp/on (partial (aid/flip r/render) (js/document.getElementById "app"))
+        app)
 
-(defonce app-state (atom {:text "Hello world!"}))
-
-(defn on-js-reload []
-  ;; optionally touch your app-state to force rerendering depending on
-  ;; your application
-  ;; (swap! app-state update-in [:__figwheel_counter] inc)
-)
+(frp/activate)
